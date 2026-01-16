@@ -29,12 +29,15 @@ npm start             # For Node.js projects
 
 ## Development Progress
 
+- ✅ Implement AccountManager class for portfolio and account management
 - ✅ Design the architecture and structure for: Develop an AI trading bot to trade stocks and crypto with the Alpaca Trade API to maximize profits greatly very quickly. Requirements: ['Alpca Trade Bot should take in a set of keys and the bot should gather information about the account so that it can be fully automated and make trades on its own at all times simply by letting it run in the background']
 
 ## Project Structure
 
 ```
 project_3_trade_bot/
+├── src
+│   └── account_manager.py
 ├── trade_bot
 │   ├── __init__.py
 │   ├── alpaca_client.py
