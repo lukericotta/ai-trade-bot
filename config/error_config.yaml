@@ -1,0 +1,51 @@
+# Error handling and recovery configuration
+
+# Circuit breaker thresholds (errors per hour before activation)
+circuit_breaker:
+  api_error: 10
+  network_error: 15
+  data_error: 20
+  model_error: 5
+  trading_error: 3
+  system_error: 2
+  validation_error: 25
+
+# Circuit breaker duration in minutes
+circuit_breaker_duration: 15
+
+# Retry configurations
+retry_config:
+  max_retries: 3
+  base_delay: 1.0
+  api_retry_delay: 5
+  network_retry_delay: 10
+
+# Recovery settings
+recovery:
+  snapshot_interval: 300  # seconds
+  max_degradation_level: 5
+  emergency_threshold: 4
+  auto_recovery_attempts: 3
+
+# Logging configuration
+logging:
+  level: INFO
+  file_rotation: daily
+  max_file_size: 100MB
+  backup_count: 30
+
+# Alert thresholds
+alerts:
+  critical_errors: true
+  high_errors: true
+  degradation_level_2: true
+  emergency_mode: true
+  recovery_failures: true
+
+# Health monitoring
+health_monitoring:
+  check_interval: 60  # seconds
+  api_timeout: 30
+  data_freshness_threshold: 300  # seconds
+  memory_threshold: 80  # percentage
+  cpu_threshold: 90   # percentage
