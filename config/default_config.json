@@ -1,0 +1,30 @@
+{
+    "_warning": "This is a template configuration. You must configure your API keys before running the bot!",
+    
+    "alpaca": {
+        "api_key": "",
+        "secret_key": "",
+        "base_url": "https://paper-api.alpaca.markets",
+        "data_url": "https://data.alpaca.markets"
+    },
+    
+    "strategies": {
+        "momentum": {
+            "enabled": false,
+            "risk_per_trade": 0.02,
+            "max_positions": 5
+        }
+    },
+    
+    "risk_management": {
+        "max_portfolio_risk": 0.10,
+        "stop_loss_percent": 0.05,
+        "take_profit_percent": 0.15
+    },
+    
+    "trading": {
+        "market_hours_only": true,
+        "allow_crypto": true,
+        "min_trade_amount": 10.0
+    }
+}

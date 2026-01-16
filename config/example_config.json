@@ -1,0 +1,95 @@
+{
+    "_comment": "Example configuration file for the AI Trading Bot",
+    "_note": "Copy this file to create your own configuration. Never commit real API keys!",
+    
+    "alpaca": {
+        "api_key": "YOUR_ALPACA_API_KEY_HERE",
+        "secret_key": "YOUR_ALPACA_SECRET_KEY_HERE",
+        "base_url": "https://paper-api.alpaca.markets",
+        "data_url": "https://data.alpaca.markets",
+        "_note": "Use paper trading URL for testing: https://paper-api.alpaca.markets",
+        "_live_url": "https://api.alpaca.markets (USE ONLY WHEN READY FOR LIVE TRADING)"
+    },
+    
+    "strategies": {
+        "momentum": {
+            "enabled": true,
+            "description": "Momentum-based trading strategy",
+            "risk_per_trade": 0.02,
+            "max_positions": 5,
+            "min_volume": 1000000,
+            "lookback_days": 20,
+            "rsi_oversold": 30,
+            "rsi_overbought": 70
+        },
+        "mean_reversion": {
+            "enabled": false,
+            "description": "Mean reversion strategy",
+            "risk_per_trade": 0.015,
+            "max_positions": 3,
+            "bollinger_periods": 20,
+            "bollinger_std": 2
+        }
+    },
+    
+    "risk_management": {
+        "max_portfolio_risk": 0.10,
+        "max_daily_loss": 0.05,
+        "stop_loss_percent": 0.05,
+        "take_profit_percent": 0.15,
+        "max_positions_total": 10,
+        "min_cash_reserve": 0.10,
+        "position_sizing_method": "kelly",
+        "volatility_adjustment": true
+    },
+    
+    "trading": {
+        "market_hours_only": true,
+        "allow_crypto": true,
+        "allow_fractional_shares": true,
+        "order_timeout_seconds": 60,
+        "slippage_tolerance": 0.001,
+        "min_trade_amount": 10.0
+    },
+    
+    "data": {
+        "update_frequency_seconds": 30,
+        "historical_data_days": 252,
+        "indicators": {
+            "sma_periods": [10, 20, 50, 200],
+            "ema_periods": [12, 26],
+            "rsi_period": 14,
+            "macd_fast": 12,
+            "macd_slow": 26,
+            "macd_signal": 9
+        }
+    },
+    
+    "monitoring": {
+        "enable_alerts": true,
+        "alert_on_trades": true,
+        "alert_on_errors": true,
+        "performance_reporting": true,
+        "daily_summary": true
+    },
+    
+    "backtesting": {
+        "initial_capital": 100000,
+        "commission": 0.0,
+        "slippage": 0.001,
+        "start_date": "2023-01-01",
+        "end_date": "2024-01-01"
+    },
+    
+    "universe": {
+        "stock_symbols": [
+            "AAPL", "GOOGL", "MSFT", "AMZN", "TSLA",
+            "NVDA", "META", "NFLX", "AMD", "INTC"
+        ],
+        "crypto_symbols": [
+            "BTCUSD", "ETHUSD", "ADAUSD"
+        ],
+        "market_cap_min": 1000000000,
+        "avg_volume_min": 1000000
+    }
+}
