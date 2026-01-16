@@ -21,6 +21,8 @@ import time
 from pathlib import Path
 import asyncio
 from typing import Optional
+import os
+import json
 
 # Import our trading bot components
 try:
@@ -28,24 +30,55 @@ try:
 except ImportError as e:
     print(f"Error importing configuration manager: {e}")
     print("Please ensure all required modules are installed and available.")
-    sys.exit(1)
+    # Create a basic ConfigManager class if import fails
+    class ConfigManager:
+        def __init__(self, config_path):
+            self.config_path = config_path
+            self.current_config = {}
+            self._load_config()
+        
+        def _load_config(self):
+            try:
+                if Path(self.config_path).exists():
+                    with open(self.config_path, 'r') as f:
+                        self.current_config = json.load(f)
+            except Exception as e:
+                print(f"Warning: Could not load config file: {e}")
+                self.current_config = {}
+        
+        def validate_config(self):
+            # Basic validation
+            if not self.current_config:
+                raise ConfigurationError("Configuration is empty")
+    
+    class ConfigurationError(Exception):
+        pass
 
 # Set up logging
 def setup_logging(log_level: str = 'INFO'):
     """Set up logging with proper directory creation."""
-    log_dir = Path('logs')
+    # Ensure we're working with absolute paths
+    current_dir = Path.cwd()
+    log_dir = current_dir / 'logs'
     log_dir.mkdir(exist_ok=True)
     
+    # Configure logging
+    log_file = log_dir / 'trading_bot.log'
+    
+    # Clear any existing handlers
+    logging.getLogger().handlers.clear()
+    
     logging.basicConfig(
-        level=getattr(logging, log_level),
+        level=getattr(logging, log_level.upper()),
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(log_dir / 'trading_bot.log'),
+            logging.FileHandler(log_file),
             logging.StreamHandler(sys.stdout)
         ]
     )
     return logging.getLogger(__name__)
 
+# Initialize logger
 logger = setup_logging()
 
 
@@ -196,38 +229,64 @@ Examples:
     return parser.parse_args()
 
 
+def ensure_project_structure():
+    """
+    Ensure the project directory structure exists.
+    """
+    current_dir = Path.cwd()
+    logger.info(f"Current working directory: {current_dir}")
+    
+    # Create necessary directories
+    directories = ['logs', 'config', 'data', 'src', 'tests']
+    for directory in directories:
+        dir_path = current_dir / directory
+        dir_path.mkdir(exist_ok=True)
+        logger.debug(f"Ensured directory exists: {dir_path}")
+    
+    return current_dir
+
+
 async def main():
     """
     Main entry point for the trading bot.
     """
-    # Ensure we're in the correct working directory
-    script_dir = Path(__file__).parent.absolute()
-    if script_dir != Path.cwd():
-        logger.info(f"Changing working directory to: {script_dir}")
-        import os
-        os.chdir(script_dir)
-    
-    args = parse_arguments()
-    
-    # Set up logging with the specified level
-    global logger
-    logger = setup_logging(args.log_level)
-    
-    # Create necessary directories
-    for directory in ['logs', 'config', 'data']:
-        Path(directory).mkdir(exist_ok=True)
-        logger.debug(f"Ensured directory exists: {directory}")
-    
-    # Check if config file exists
-    config_path = Path(args.config)
-    if not config_path.exists():
-        logger.error(f"Configuration file not found: {args.config}")
-        logger.info("Please create a configuration file or use --config to specify a different path.")
-        logger.info("See config/example_config.json for a template.")
+    try:
+        # Ensure we're in the correct working directory and structure exists
+        script_dir = Path(__file__).parent.absolute()
+        project_root = ensure_project_structure()
         
-        # Create a basic config template if config directory exists but file doesn't
-        if config_path.parent.exists():
-            logger.info(f"Creating basic configuration template at: {args.config}")
+        # Change to the script directory if needed
+        if script_dir != Path.cwd():
+            logger.info(f"Changing working directory to: {script_dir}")
+            os.chdir(script_dir)
+            # Re-ensure structure in the correct directory
+            project_root = ensure_project_structure()
+        
+        args = parse_arguments()
+        
+        # Set up logging with the specified level
+        global logger
+        logger = setup_logging(args.log_level)
+        
+        logger.info(f"Starting AI Trading Bot from: {project_root}")
+        logger.info(f"Python executable: {sys.executable}")
+        logger.info(f"Python version: {sys.version}")
+        
+        # Check if config file exists
+        config_path = Path(args.config)
+        if not config_path.is_absolute():
+            config_path = project_root / config_path
+        
+        if not config_path.exists():
+            logger.error(f"Configuration file not found: {config_path}")
+            logger.info("Please create a configuration file or use --config to specify a different path.")
+            logger.info("See config/example_config.json for a template.")
+            
+            # Create a basic config template if config directory exists but file doesn't
+            config_dir = config_path.parent
+            config_dir.mkdir(exist_ok=True)
+            
+            logger.info(f"Creating basic configuration template at: {config_path}")
             basic_config = {
                 "alpaca": {
                     "api_key": "YOUR_ALPACA_API_KEY_HERE",
@@ -244,21 +303,19 @@ async def main():
                 }
             }
             try:
-                import json
                 with open(config_path, 'w') as f:
                     json.dump(basic_config, f, indent=4)
-                logger.info(f"Created basic config template. Please edit {args.config} with your actual API keys.")
+                logger.info(f"Created basic config template. Please edit {config_path} with your actual API keys.")
             except Exception as e:
                 logger.error(f"Failed to create config template: {e}")
+            
+            return 1
         
-        return 1
-    
-    if args.dry_run:
-        logger.info("Running in DRY-RUN mode - no actual trades will be executed")
-    
-    try:
+        if args.dry_run:
+            logger.info("Running in DRY-RUN mode - no actual trades will be executed")
+        
         # Create and run the trading bot
-        bot = TradingBot(args.config)
+        bot = TradingBot(str(config_path))
         await bot.run()
         return 0
         
